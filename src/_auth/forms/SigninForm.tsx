@@ -42,7 +42,6 @@ const SigninForm = () => {
 
     if (isLoggedIn) {
       form.reset();
-
       navigate("/");
     } else {
       toast({ title: "Login failed. Please try again.", });
@@ -93,13 +92,13 @@ const SigninForm = () => {
             )}
           />
 
-          <Button type="submit" className="shad-button_primary">
+          <Button type="submit" className="shad-button hover: bg-pink-300 text-white">
             {isLoading || isUserLoading ? (
-              <div className="flex-center gap-2">
-                <Loader /> Loading...
+              <div className="flex-center gap-2 text-white">
+                <Loader /> Diving in...
               </div>
             ) : (
-              "Log in"
+              'Log in'
             )}
           </Button>
 

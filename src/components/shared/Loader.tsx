@@ -1,13 +1,20 @@
-const Loader = () => (
-  <div className="flex-center w-full">
-    <img
-      src="/assets/icons/loader.svg"
-      alt="loader"
-      width={24}
-      height={24}
-      className="animate-spin"
-    />
-  </div>
-);
+import React from 'react';
+import { Triangle } from 'react-loader-spinner';
 
-export default Loader;
+const TriangleLoader: React.FC = () => {
+  return (
+    <div>
+      <Triangle
+        visible={true}
+        height="30"
+        width="30"
+        color="#FFFFFF"
+        ariaLabel="triangle-loading"
+        wrapperStyle={{}}
+        wrapperClass=""
+      />
+    </div>
+  );
+};
+
+export default TriangleLoader;

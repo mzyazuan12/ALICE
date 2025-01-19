@@ -20,12 +20,12 @@ const UserCard = ({ user }: UserCardProps) => {
         <p className="base-medium text-light-1 text-center line-clamp-1">
           {user.name}
         </p>
-        <p className="small-regular text-light-3 text-center line-clamp-1">
+        <p className="small-regular text-gray-3 text-center line-clamp-1">
           @{user.username}
         </p>
       </div>
 
-      <Button type="button" size="sm" className="shad-button_primary px-5">
+      <Button type="button" size="sm" className="shad-button bg-gray-500 px-5">
         Follow
       </Button>
     </Link>

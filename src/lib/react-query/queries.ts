@@ -17,7 +17,7 @@ import {
   updatePost,
   getUserPosts,
   deletePost,
-  likePost,
+  likePost, incrementViewCount, 
   getUserById,
   updateUser,
   getRecentPosts,
@@ -242,5 +242,41 @@ export const useUpdateUser = () => {
         queryKey: [QUERY_KEYS.GET_USER_BY_ID, data?.$id],
       });
     },
+  });
+};
+// Mutation hook to increment the view count of a post
+export const useIncrementViewCount = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (postId: string) => incrementViewCount(postId), // Call the API function to increment views
+    onSuccess: () => {
+      // Invalidate post details query to update the view count after mutation
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.GET_POST_BY_ID],
+      });
+    },
+  });
+};
+type NewsApiResponse = {
+  articles: { title: string; url: string }[];
+};
+
+export const useGetAiNews = () => {
+  return useQuery(["aiNews"], async () => {
+    // Use import.meta.env.VITE_... instead of process.env
+    const apiKey = import.meta.env.VITE_NEWS_API_KEY;
+    if (!apiKey) {
+      throw new Error("Missing VITE_NEWS_API_KEY in .env");
+    }
+
+    const res = await fetch(
+      `https://newsapi.org/v2/everything?q=AI&pageSize=5&apiKey=${apiKey}`
+    );
+    if (!res.ok) {
+      throw new Error("Failed to fetch AI news");
+    }
+    const data: NewsApiResponse = await res.json();
+    return data;
   });
 };

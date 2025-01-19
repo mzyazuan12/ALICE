@@ -48,37 +48,55 @@ const PostForm = ({ post, action }: PostFormProps) => {
 
   // Handler
   const handleSubmit = async (value: z.infer<typeof PostValidation>) => {
-    // ACTION = UPDATE
-    if (post && action === "Update") {
-      const updatedPost = await updatePost({
-        ...value,
-        postId: post.$id,
-        imageId: post.imageId,
-        imageUrl: post.imageUrl,
-      });
-
-      if (!updatedPost) {
-        toast({
-          title: `${action} post failed. Please try again.`,
+    try {
+      const mediaType = value.file.length > 0
+        ? value.file[0].type.startsWith("image/")
+          ? "image"
+          : value.file[0].type.startsWith("video/")
+          ? "video"
+          : "other"
+        : "none";
+  
+      if (post && action === "Update") {
+        const updatedPost = await updatePost({
+          ...value,
+          mediaType,
+          postId: post.$id,
+          imageId: post.imageId,
+          imageUrl: post.imageUrl,
         });
+  
+        if (!updatedPost) {
+          toast({
+            title: `${action} post failed. Please try again.`,
+          });
+          return;
+        }
+        navigate(`/posts/${post.$id}`);
+      } else {
+        const newPost = await createPost({
+          ...value,
+          mediaType,
+          userId: user.id,
+        });
+  
+        if (!newPost) {
+          toast({
+            title: `${action} post failed. Please try again.`,
+          });
+          return;
+        }
+        navigate("/");
       }
-      return navigate(`/posts/${post.$id}`);
-    }
-
-    // ACTION = CREATE
-    const newPost = await createPost({
-      ...value,
-      userId: user.id,
-    });
-
-    if (!newPost) {
+    } catch (error) {
       toast({
-        title: `${action} post failed. Please try again.`,
+        title: `An error occurred during ${action.toLowerCase()} post.`,
+        description: error.message,
+        variant: "destructive",
       });
     }
-    navigate("/");
   };
-
+  
   return (
     <Form {...form}>
       <form
@@ -162,7 +180,7 @@ const PostForm = ({ post, action }: PostFormProps) => {
           </Button>
           <Button
             type="submit"
-            className="shad-button_primary whitespace-nowrap"
+            className="shad-button_secondary whitespace-nowrap"
             disabled={isLoadingCreate || isLoadingUpdate}>
             {(isLoadingCreate || isLoadingUpdate) && <Loader />}
             {action} Post

@@ -1,0 +1,53 @@
+<svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
+
+  <circle cx="120" cy="120" r="90" fill="none" stroke="#0ea5e9" stroke-width="4" stroke-dasharray="30 15">
+    <animate attributeName="stroke-dashoffset" from="0" to="45" dur="2s" repeatCount="indefinite" />
+    <animateTransform attributeName="transform" type="rotate" from="0 120 120" to="360 120 120" dur="8s" repeatCount="indefinite" />
+  </circle>
+  
+
+  <polygon points="120,60 165,90 165,150 120,180 75,150 75,90" fill="none" stroke="#2563eb" stroke-width="3">
+    <animate attributeName="stroke-width" values="3;6;3" dur="2s" repeatCount="indefinite" />
+    <animate attributeName="opacity" values="0.4;1;0.4" dur="2s" repeatCount="indefinite" />
+  </polygon>
+  
+
+  <g>
+    <animateTransform attributeName="transform" type="rotate" from="0 120 120" to="-360 120 120" dur="4s" repeatCount="indefinite" />
+    <polygon points="120,85 135,105 105,105" fill="#0284c7">
+      <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite" />
+    </polygon>
+    <polygon points="120,155 135,135 105,135" fill="#0284c7">
+      <animate attributeName="opacity" values="1;0.3;1" dur="2s" repeatCount="indefinite" />
+    </polygon>
+  </g>
+  
+
+  <line x1="75" y1="120" x2="165" y2="120" stroke="#7dd3fc" stroke-width="2">
+    <animate attributeName="y1" values="90;150;90" dur="2s" repeatCount="indefinite" />
+    <animate attributeName="y2" values="90;150;90" dur="2s" repeatCount="indefinite" />
+    <animate attributeName="opacity" values="0;1;0" dur="2s" repeatCount="indefinite" />
+  </line>
+  
+
+  <circle cx="120" cy="120" r="15" fill="#0ea5e9">
+    <animate attributeName="r" values="15;20;15" dur="2s" repeatCount="indefinite" />
+    <animate attributeName="fill-opacity" values="0.6;1;0.6" dur="1s" repeatCount="indefinite" />
+  </circle>
+  
+
+  <circle cx="120" cy="70" r="5" fill="#38bdf8">
+    <animateTransform attributeName="transform" type="rotate" from="0 120 120" to="360 120 120" dur="3s" repeatCount="indefinite" />
+    <animate attributeName="r" values="5;7;5" dur="1s" repeatCount="indefinite" />
+  </circle>
+  
+
+  <g stroke="#7dd3fc" stroke-width="2">
+    <line x1="120" y1="90" x2="120" y2="150">
+      <animate attributeName="opacity" values="0;1;0" dur="1s" repeatCount="indefinite" />
+    </line>
+    <line x1="90" y1="120" x2="150" y2="120">
+      <animate attributeName="opacity" values="0;1;0" dur="1s" repeatCount="indefinite" begin="0.5s" />
+    </line>
+  </g>
+</svg>

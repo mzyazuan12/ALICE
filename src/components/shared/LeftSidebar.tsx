@@ -26,22 +26,25 @@ const LeftSidebar = () => {
 
   return (
     <nav className="leftsidebar">
-      <div className="flex flex-col gap-11">
+      <div className="flex flex-col gap-12">
         <Link to="/" className="flex gap-3 items-center">
           <img
             src="/assets/images/logo.svg"
             alt="logo"
-            width={170}
+            width={150}
             height={36}
+            
           />
         </Link>
 
         {isLoading || !user.email ? (
-          <div className="h-14">
+          <div className="h-14 flex-center">
             <Loader />
           </div>
         ) : (
-          <Link to={`/profile/${user.id}`} className="flex gap-3 items-center">
+          <Link 
+            to={`/profile/${user.id}`} 
+            className="flex gap-3 items-center p-4 rounded-lg hover:bg-pink-300 transition-colors duration-200">
             <img
               src={user.imageUrl || "/assets/icons/profile-placeholder.svg"}
               alt="profile"
@@ -49,7 +52,7 @@ const LeftSidebar = () => {
             />
             <div className="flex flex-col">
               <p className="body-bold">{user.name}</p>
-              <p className="small-regular text-light-3">@{user.username}</p>
+              <p className="small-regular text-light-4">@{user.username}</p>
             </div>
           </Link>
         )}
@@ -61,9 +64,11 @@ const LeftSidebar = () => {
             return (
               <li
                 key={link.label}
-                className={`leftsidebar-link group ${
-                  isActive && "bg-primary-500"
-                }`}>
+                className={`rounded-lg transition-colors duration-200
+                  ${isActive 
+                    ? 'bg-pink-300 hover:bg-pink-400' 
+                    : 'hover:bg-pink-300'
+                  }`}>
                 <NavLink
                   to={link.route}
                   className="flex gap-4 items-center p-4">
@@ -84,7 +89,7 @@ const LeftSidebar = () => {
 
       <Button
         variant="ghost"
-        className="shad-button_ghost"
+        className="shad-button_ghost justify-start gap-4 hover:bg-pink-300 transition-colors duration-200"
         onClick={(e) => handleSignOut(e)}>
         <img src="/assets/icons/logout.svg" alt="logout" />
         <p className="small-medium lg:base-medium">Logout</p>
