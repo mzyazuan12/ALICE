@@ -500,7 +500,7 @@ export enum QUERY_KEYS {
   GET_RECENT_POSTS = "getRecentPosts",
   GET_POST_BY_ID = "getPostById",
   GET_USER_POSTS = "getUserPosts",
-  GET_FILE_PREVIEW = "getFilePreview",
+  GET_FILE_PREVIEW = "getFileView",
 
   //  SEARCH KEYS
   SEARCH_POSTS = "getSearchPosts",
@@ -535,7 +535,7 @@ module.exports = {
     },
     extend: {
       colors: {
-        'primary-500': '#877EFF',
+        'primary-500': '#808080',
         'primary-600': '#5D5FEF',
         'secondary-500': '#FFB620',
         'off-white': '#D0DFFF',
@@ -544,7 +544,7 @@ module.exports = {
         'dark-2': '#09090A',
         'dark-3': '#101012',
         'dark-4': '#1F1F22',
-        'light-1': '#FFFFFF',
+        'light-1': '#808080',
         'light-2': '#EFEFEF',
         'light-3': '#7878A3',
         'light-4': '#5C5C7B',
@@ -762,3 +762,4 @@ And if you're hungry for more than just a course and want to understand how we l
 </a>
 
 #
+# ALICE
