@@ -1,68 +1,42 @@
-import React, { useState } from "react";
+import { useState, useMemo } from "react";
 import { Loader, PostCard, UserCard } from "@/components/shared";
-import { useGetRecentPosts, useGetUsers, useGetAiNews } from "@/lib/react-query/queries";
-import type { Post } from "@/types/index"; // import your custom `Post` type (extends Models.Document)
+import { useGetRecentPosts, useGetUsers } from "@/lib/react-query/queries";
+import { Post } from "@/types";
 
-const Banner = () => {
-  const { data, isLoading, isError } = useGetAiNews();
-
-  return (
-    <div className="banner-container overflow-hidden bg-dark-2 p-1.5 sm:p-2 md:p-3 rounded-lg">
-      <div className="banner-text-container whitespace-nowrap animate-scroll-left">
-        <a
-          href="https://devpost.com/hackathons"
-          className="text-primary-500 mr-4 sm:mr-6 md:mr-10 inline-block text-[10px] sm:text-tiny-medium md:text-small-medium"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          New DevPost Hackathons
-        </a>
-
-        {isLoading && (
-          <span className="text-white mr-4 sm:mr-6 md:mr-10 text-[10px] sm:text-tiny-medium md:text-small-medium">
-            Loading...
-          </span>
-        )}
-        {isError && (
-          <span className="text-red-500 mr-4 sm:mr-6 md:mr-10 text-[10px] sm:text-tiny-medium md:text-small-medium">
-            Error
-          </span>
-        )}
-
-        {data?.articles.map((article, index) => (
-          <a
-            key={index}
-            href={article.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-primary-500 mr-4 sm:mr-6 md:mr-10 inline-block text-[10px] sm:text-tiny-medium md:text-small-medium"
-          >
-            {article.title}
-          </a>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-const Home: React.FC = () => {
+const Home = () => {
   const [showMobileCreators, setShowMobileCreators] = useState(false);
 
-  // This hook should return something like { documents: Post[] }
-  const {
-    data: posts,
+  const { 
+    data: postsData,
     isLoading: isPostLoading,
     isError: isErrorPosts,
   } = useGetRecentPosts();
 
-  // This hook returns user data
   const {
-    data: creators,
+    data: creatorsData,
     isLoading: isUserLoading,
     isError: isErrorCreators,
   } = useGetUsers(10);
 
-  // Mobile creators panel
+  // Transform postsData.documents (of type Document[]) to Post[]
+  const recentPosts: Post[] = useMemo(() => {
+    return postsData?.documents.map((doc: any) => ({
+      ...doc,
+      // These properties are expected by PostCard. Adjust defaults as needed.
+      mediaType: doc.mediaType || "image",
+      imageUrl: doc.imageUrl || "",
+      creator: doc.creator || {
+        $id: "",
+        name: "",
+        imageUrl: "/assets/icons/profile-placeholder.svg",
+      },
+      caption: doc.caption || "",
+      tags: doc.tags || [],
+      location: doc.location || "",
+    })) || [];
+  }, [postsData?.documents]);
+
+  // Mobile creators panel component
   const MobileCreatorsPanel = () => {
     if (!showMobileCreators) return null;
 
@@ -75,15 +49,18 @@ const Home: React.FC = () => {
         <div className="absolute right-0 top-0 bottom-0 w-[280px] bg-dark-2 p-4 overflow-y-auto custom-scrollbar">
           <div className="flex justify-between items-center mb-4">
             <h3 className="h3-bold text-light-1">Popular Creators</h3>
-            <button onClick={() => setShowMobileCreators(false)}>
+            <button 
+              onClick={() => setShowMobileCreators(false)}
+              aria-label="Close creators panel"
+            >
               <img src="/assets/icons/back.svg" alt="Close" className="w-6 h-6" />
             </button>
           </div>
-          {isUserLoading && !creators ? (
+          {isUserLoading && !creatorsData ? (
             <Loader />
           ) : (
             <ul className="flex flex-col gap-4">
-              {creators?.documents.map((creator) => (
+              {creatorsData?.documents.map((creator: any) => (
                 <li key={creator.$id}>
                   <UserCard user={creator} />
                 </li>
@@ -95,15 +72,11 @@ const Home: React.FC = () => {
     );
   };
 
-  // Error states
   if (isErrorPosts || isErrorCreators) {
     return (
       <div className="flex flex-1">
         <div className="home-container">
-          <p className="body-medium text-light-1">Something bad happened</p>
-        </div>
-        <div className="home-creators hidden lg:block">
-          <p className="body-medium text-light-1">Something bad happened</p>
+          <p className="body-medium text-light-1">Error loading content</p>
         </div>
       </div>
     );
@@ -130,19 +103,16 @@ const Home: React.FC = () => {
         {/* Posts Section */}
         <div className="flex-1 h-full overflow-y-auto custom-scrollbar">
           <div className="w-full max-w-[280px] xs:max-w-[380px] sm:max-w-[480px] md:max-w-[580px] lg:max-w-[680px] mx-auto px-2 xs:px-3 sm:px-4 py-4 sm:py-6 md:py-10">
-            {/* Banner */}
-            <Banner />
-
-            {/* Posts */}
+            {/* Posts Header */}
             <h2 className="text-[16px] xs:text-[18px] sm:h3-bold md:h2-bold text-left w-full mt-4 sm:mt-6">
               For you
             </h2>
 
-            {isPostLoading && !posts ? (
+            {isPostLoading && !postsData ? (
               <Loader />
             ) : (
               <ul className="flex flex-col gap-4 sm:gap-6 md:gap-8 w-full mt-4 sm:mt-6">
-                {posts?.documents.map((post: Post) => (
+                {recentPosts.map((post: Post) => (
                   <li key={post.$id} className="w-full">
                     <PostCard post={post} />
                   </li>
@@ -152,16 +122,15 @@ const Home: React.FC = () => {
           </div>
         </div>
 
-        {/* Popular Creators Section - Hidden on mobile, visible on lg */}
+        {/* Popular Creators Section - Desktop */}
         <div className="hidden lg:block w-[340px] xl:w-[400px] h-full overflow-y-auto custom-scrollbar bg-dark-2 border-l border-dark-4">
           <div className="px-4 py-10">
             <h3 className="h3-bold text-light-1">Popular Creators</h3>
-
-            {isUserLoading && !creators ? (
+            {isUserLoading && !creatorsData ? (
               <Loader />
             ) : (
               <ul className="flex flex-col gap-6 mt-6">
-                {creators?.documents.map((creator) => (
+                {creatorsData?.documents.map((creator: any) => (
                   <li key={creator.$id}>
                     <UserCard user={creator} />
                   </li>
@@ -171,10 +140,11 @@ const Home: React.FC = () => {
           </div>
         </div>
 
-        {/* Mobile Popular Creators Button */}
+        {/* Mobile Creators Toggle */}
         <button
-          className="fixed bottom-4 right-4 lg:hidden bg-dark-2 p-3 rounded-full shadow-lg"
+          className="fixed bottom-4 right-4 lg:hidden bg-dark-2 p-3 rounded-full shadow-lg hover:bg-dark-3 transition-colors"
           onClick={() => setShowMobileCreators(true)}
+          aria-label="Show creators"
         >
           <img
             src="/assets/icons/people.svg"
@@ -183,7 +153,6 @@ const Home: React.FC = () => {
           />
         </button>
 
-        {/* Mobile Creators Panel */}
         <MobileCreatorsPanel />
       </div>
     </div>
