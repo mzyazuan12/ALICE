@@ -55,3 +55,17 @@ export interface IUpdatePost {
   imageId: string; // ID of the current media file
   mediaType: "video" | "image" | "other" | "none";// Type of the media (optional)
 }
+import { Models } from "appwrite";
+ interface Creator {
+   $id: string;
+  name: string;
+  imageUrl?: string;
+}
+ export interface Post extends Models.Document {
+  mediaType?: "image" | "video" | "other" | "none";
+   imageUrl?: string;
+  creator: Creator;
+  caption: string;
+  tags: string[];
+  location: string;
+}

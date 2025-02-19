@@ -1,48 +1,34 @@
+// PostCard.tsx
 import { useState, useEffect, useMemo } from "react";
-import { Models } from "appwrite";
 import { Link } from "react-router-dom";
 import { PostStats } from "@/components/shared";
 import { multiFormatDateString } from "@/lib/utils";
 import { useUserContext } from "@/context/AuthContext";
+import { Post } from "@/types/index"; // <-- Import the custom Post interface
 
-type Creator = {
-  $id: string;
-  name: string;
-  imageUrl?: string;
-};
-
-type PostCardProps = {
-  post: Models.Document & {
-    mediaType?: "image" | "video";
-    imageUrl?: string;
-    creator: Creator;
-    caption: string;
-    tags: string[];
-    location: string;
-    $createdAt: string;
-    $id: string;
-  };
-};
+interface PostCardProps {
+  post: Post;
+}
 
 const PostCard = ({ post }: PostCardProps) => {
   const { user } = useUserContext();
   const [isVideo, setIsVideo] = useState(false);
 
+  // Check if the media is a video by loading metadata
   useEffect(() => {
     const checkIfVideo = async () => {
       if (!post.imageUrl) return;
-      
       try {
         const videoElement = document.createElement("video");
         videoElement.src = post.imageUrl;
         videoElement.preload = "metadata";
-        
+
         await new Promise((resolve) => {
           videoElement.onloadedmetadata = () => {
             setIsVideo(videoElement.duration > 1);
             resolve(null);
           };
-          
+
           videoElement.onerror = () => {
             setIsVideo(false);
             resolve(null);
@@ -57,6 +43,7 @@ const PostCard = ({ post }: PostCardProps) => {
     checkIfVideo();
   }, [post.imageUrl]);
 
+  // If there's no imageUrl, show a placeholder image
   const MediaContent = useMemo(() => {
     if (!post.imageUrl) {
       return (
@@ -95,21 +82,23 @@ const PostCard = ({ post }: PostCardProps) => {
     );
   }, [post.imageUrl, isVideo]);
 
-  const ProfileImage = useMemo(() => (
-    <img
-      src={post.creator?.imageUrl || "/assets/icons/profile-placeholder.svg"}
-      alt={`${post.creator.name}'s profile`}
-      className="w-12 lg:h-12 rounded-full"
-    />
-  ), [post.creator?.imageUrl, post.creator.name]);
+  // Memoized profile image fallback
+  const ProfileImage = useMemo(
+    () => (
+      <img
+        src={post.creator?.imageUrl || "/assets/icons/profile-placeholder.svg"}
+        alt={`${post.creator.name}'s profile`}
+        className="w-12 lg:h-12 rounded-full"
+      />
+    ),
+    [post.creator?.imageUrl, post.creator.name]
+  );
 
   return (
     <div className="post-card">
       <div className="flex-between">
         <div className="flex items-center gap-3">
-          <Link to={`/profile/${post.creator.$id}`}>
-            {ProfileImage}
-          </Link>
+          <Link to={`/profile/${post.creator.$id}`}>{ProfileImage}</Link>
 
           <div className="flex flex-col">
             <p className="base-medium lg:body-bold text-light-1">
