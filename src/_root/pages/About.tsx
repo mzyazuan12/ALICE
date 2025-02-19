@@ -16,43 +16,30 @@ const About = () => {
   const [loading, setLoading] = useState(true);
   const [loadedVideos, setLoadedVideos] = useState(0);
 
-  // We removed unused states like `prompt`, `generating`, etc.
-
-  const totalVideos = 4;
-  // Specify the video element type to avoid "possibly null" or "any" issues
+  const totalVideos = 5;
   const nextVdRef = useRef<HTMLVideoElement>(null);
 
-  // Increment loaded video count
   const handleVideoLoad = () => {
     setLoadedVideos((prev) => prev + 1);
   };
 
-  // When enough videos have loaded, remove the loading overlay
   useEffect(() => {
-    if (loadedVideos === totalVideos - 1) {
+    if (loadedVideos === 3) {
       setLoading(false);
     }
-  }, [loadedVideos, totalVideos]);
+  }, [loadedVideos]);
 
-  // Handle mini video click
   const handleMiniVdClick = () => {
     setHasClicked(true);
     setCurrentIndex((prevIndex) => (prevIndex % totalVideos) + 1);
   };
 
-  // A "fire-and-forget" function for GSAP's onStart (if you need async)
-  // Note: This is optional. If you don't need async, just do a normal function.
   function handleOnStart() {
-    // "Fire-and-forget" any async logic so onStart itself returns void
     (async () => {
-      // If you have some async code, do it here
-      // e.g., await new Promise(res => setTimeout(res, 1000));
-      // Then play the video
       nextVdRef.current?.play();
     })();
   }
 
-  // GSAP hook #1
   useGSAP(
     () => {
       if (hasClicked) {
@@ -64,8 +51,7 @@ const About = () => {
           height: '100%',
           duration: 1,
           ease: 'power1.inOut',
-          // Instead of doing `async` here, call our function
-          onStart: handleOnStart, // <-- no TS error now
+          onStart: handleOnStart,
         });
         gsap.from('#current-video', {
           transformOrigin: 'center center',
@@ -75,13 +61,9 @@ const About = () => {
         });
       }
     },
-    {
-      dependencies: [currentIndex, hasClicked],
-      revertOnUpdate: true,
-    }
+    { dependencies: [currentIndex, hasClicked], revertOnUpdate: true }
   );
 
-  // GSAP hook #2 - example scroll-trigger effect
   useGSAP(() => {
     gsap.set('#video-frame', {
       clipPath: 'polygon(14% 0, 72% 0, 88% 90%, 0 95%)',
@@ -100,12 +82,10 @@ const About = () => {
     });
   });
 
-  // Make sure 'index' is typed to avoid implicit 'any' error
   const getVideoSrc = (index: number) => `videos/hero-${index}.mp4`;
 
   return (
     <div className="min-h-screen w-full">
-      {/* Hero Section */}
       <div className="relative h-dvh w-screen overflow-x-hidden">
         {loading && (
           <div className="flex-center absolute z-[100] h-dvh w-screen overflow-hidden bg-violet-50">
@@ -153,10 +133,10 @@ const About = () => {
               onLoadedData={handleVideoLoad}
             />
 
-            {/* Main / Background Video */}
+            {/* Main Video */}
             <video
               src={getVideoSrc(
-                currentIndex === totalVideos - 1 ? 1 : currentIndex
+                currentIndex === totalVideos ? 1 : currentIndex
               )}
               autoPlay
               loop
@@ -166,25 +146,31 @@ const About = () => {
             />
           </div>
 
-          {/* Some overlay text and button */}
+          {/* Transparent Glass Button */}
           <div className="absolute left-0 top-0 z-40 size-full">
             <div className="mt-24 px-5 sm:px-10">
-              <h1 className="special-font hero-heading text-blue-100">
-                {/* Hero Title */}
-              </h1>
-              <p className="mb-5 max-w-64 font-robert-regular text-blue-100">
-                {/* Hero Subtitle */}
-              </p>
               <Button
                 id="watch-trailer"
-                title="Watch trailer"
-                leftIcon={<TiLocationArrow />}
-                containerClass="bg-yellow-300 flex-center gap-1"
+                title=""
+                leftIcon={
+                  <TiLocationArrow className="text-white text-2xl transition-all hover:scale-125" />
+                }
+                containerClass="bg-transparent backdrop-blur-sm border-2 border-white/30 hover:border-white/80 rounded-full p-3 shadow-glass-lg hover:shadow-glass-xl transition-all duration-300"
               />
             </div>
           </div>
         </div>
       </div>
+
+      {/* Custom Glass Shadows */}
+      <style>{`
+        .shadow-glass-lg {
+          box-shadow: 0 4px 30px rgba(255, 255, 255, 0.1);
+        }
+        .shadow-glass-xl {
+          box-shadow: 0 8px 40px rgba(255, 255, 255, 0.2);
+        }
+      `}</style>
     </div>
   );
 };
