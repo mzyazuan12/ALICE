@@ -1,3 +1,5 @@
+// src/components/LeftSidebar.tsx
+
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 
 import { INavLink } from "@/types";
@@ -5,7 +7,7 @@ import { sidebarLinks } from "@/constants";
 import { Loader } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import { useSignOutAccount } from "@/lib/react-query/queries";
-import { useUserContext, INITIAL_USER } from "@/context/AuthContext";
+import { useUserContext, INITIAL_USER, IUser } from "@/context/AuthContext";
 
 const LeftSidebar = () => {
   const navigate = useNavigate();
@@ -20,7 +22,8 @@ const LeftSidebar = () => {
     e.preventDefault();
     signOut();
     setIsAuthenticated(false);
-    setUser(INITIAL_USER);
+    // Cast INITIAL_USER to IUser to ensure type compatibility.
+    setUser(INITIAL_USER as IUser);
     navigate("/sign-in");
   };
 
@@ -33,7 +36,6 @@ const LeftSidebar = () => {
             alt="logo"
             width={150}
             height={36}
-            
           />
         </Link>
 
@@ -42,9 +44,10 @@ const LeftSidebar = () => {
             <Loader />
           </div>
         ) : (
-          <Link 
-            to={`/profile/${user.id}`} 
-            className="flex gap-3 items-center p-4 rounded-lg hover:bg-pink-300 transition-colors duration-200">
+          <Link
+            to={`/profile/${user.id}`}
+            className="flex gap-3 items-center p-4 rounded-lg hover:bg-pink-300 transition-colors duration-200"
+          >
             <img
               src={user.imageUrl || "/assets/icons/profile-placeholder.svg"}
               alt="profile"
@@ -64,14 +67,11 @@ const LeftSidebar = () => {
             return (
               <li
                 key={link.label}
-                className={`rounded-lg transition-colors duration-200
-                  ${isActive 
-                    ? 'bg-pink-300 hover:bg-pink-400' 
-                    : 'hover:bg-pink-300'
-                  }`}>
-                <NavLink
-                  to={link.route}
-                  className="flex gap-4 items-center p-4">
+                className={`rounded-lg transition-colors duration-200 ${
+                  isActive ? "bg-pink-300 hover:bg-pink-400" : "hover:bg-pink-300"
+                }`}
+              >
+                <NavLink to={link.route} className="flex gap-4 items-center p-4">
                   <img
                     src={link.imgURL}
                     alt={link.label}
@@ -90,7 +90,8 @@ const LeftSidebar = () => {
       <Button
         variant="ghost"
         className="shad-button_ghost justify-start gap-4 hover:bg-pink-300 transition-colors duration-200"
-        onClick={(e) => handleSignOut(e)}>
+        onClick={(e) => handleSignOut(e)}
+      >
         <img src="/assets/icons/logout.svg" alt="logout" />
         <p className="small-medium lg:base-medium">Logout</p>
       </Button>
