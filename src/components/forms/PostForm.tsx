@@ -49,14 +49,15 @@ const PostForm = ({ post, action }: PostFormProps) => {
   // Handler
   const handleSubmit = async (value: z.infer<typeof PostValidation>) => {
     try {
-      const mediaType = value.file.length > 0
-        ? value.file[0].type.startsWith("image/")
-          ? "image"
-          : value.file[0].type.startsWith("video/")
-          ? "video"
-          : "other"
-        : "none";
-  
+      const mediaType =
+        value.file.length > 0
+          ? value.file[0].type.startsWith("image/")
+            ? "image"
+            : value.file[0].type.startsWith("video/")
+            ? "video"
+            : "other"
+          : "none";
+
       if (post && action === "Update") {
         const updatedPost = await updatePost({
           ...value,
@@ -65,7 +66,7 @@ const PostForm = ({ post, action }: PostFormProps) => {
           imageId: post.imageId,
           imageUrl: post.imageUrl,
         });
-  
+
         if (!updatedPost) {
           toast({
             title: `${action} post failed. Please try again.`,
@@ -79,7 +80,7 @@ const PostForm = ({ post, action }: PostFormProps) => {
           mediaType,
           userId: user.id,
         });
-  
+
         if (!newPost) {
           toast({
             title: `${action} post failed. Please try again.`,
@@ -89,19 +90,23 @@ const PostForm = ({ post, action }: PostFormProps) => {
         navigate("/");
       }
     } catch (error) {
+      // Check if error is an instance of Error; otherwise convert to string.
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       toast({
         title: `An error occurred during ${action.toLowerCase()} post.`,
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
       });
     }
   };
-  
+
   return (
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(handleSubmit)}
-        className="flex flex-col gap-9 w-full  max-w-5xl">
+        className="flex flex-col gap-9 w-full max-w-5xl"
+      >
         <FormField
           control={form.control}
           name="caption"
@@ -175,13 +180,15 @@ const PostForm = ({ post, action }: PostFormProps) => {
           <Button
             type="button"
             className="shad-button_dark_4"
-            onClick={() => navigate(-1)}>
+            onClick={() => navigate(-1)}
+          >
             Cancel
           </Button>
           <Button
             type="submit"
             className="shad-button_secondary whitespace-nowrap"
-            disabled={isLoadingCreate || isLoadingUpdate}>
+            disabled={isLoadingCreate || isLoadingUpdate}
+          >
             {(isLoadingCreate || isLoadingUpdate) && <Loader />}
             {action} Post
           </Button>
