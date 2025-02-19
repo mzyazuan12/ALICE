@@ -1,178 +1,162 @@
-import { useState, useRef, useEffect } from 'react';
-import gsap from 'gsap';
-import { useGSAP } from '@gsap/react';
-import { ScrollTrigger } from 'gsap/all';
-import { TiLocationArrow } from 'react-icons/ti';
+import { useState, useMemo } from "react";
+import { Loader, PostCard, UserCard } from "@/components/shared";
+import { useGetRecentPosts, useGetUsers } from "@/lib/react-query/queries";
+import { Post } from "@/types";
 
-import Button from './Button';
-import VideoPreview from './VideoPreview';
+const Home = () => {
+  const [showMobileCreators, setShowMobileCreators] = useState(false);
 
-gsap.registerPlugin(ScrollTrigger);
+  const { 
+    data: postsData,
+    isLoading: isPostLoading,
+    isError: isErrorPosts,
+  } = useGetRecentPosts();
 
-const About = () => {
-  // Hero section states
-  const [currentIndex, setCurrentIndex] = useState(1);
-  const [hasClicked, setHasClicked] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [loadedVideos, setLoadedVideos] = useState(0);
+  const {
+    data: creatorsData,
+    isLoading: isUserLoading,
+    isError: isErrorCreators,
+  } = useGetUsers(10);
 
-  const totalVideos = 5;
-  const nextVdRef = useRef<HTMLVideoElement>(null);
-
-  const handleVideoLoad = () => {
-    setLoadedVideos((prev) => prev + 1);
-  };
-
-  useEffect(() => {
-    if (loadedVideos === 3) {
-      setLoading(false);
-    }
-  }, [loadedVideos]);
-
-  const handleMiniVdClick = () => {
-    setHasClicked(true);
-    setCurrentIndex((prevIndex) => (prevIndex % totalVideos) + 1);
-  };
-
-  function handleOnStart() {
-    (async () => {
-      nextVdRef.current?.play();
-    })();
-  }
-
-  useGSAP(
-    () => {
-      if (hasClicked) {
-        gsap.set('#next-video', { visibility: 'visible' });
-        gsap.to('#next-video', {
-          transformOrigin: 'center center',
-          scale: 1,
-          width: '100%',
-          height: '100%',
-          duration: 1,
-          ease: 'power1.inOut',
-          onStart: handleOnStart,
-        });
-        gsap.from('#current-video', {
-          transformOrigin: 'center center',
-          scale: 0,
-          duration: 1.5,
-          ease: 'power1.inOut',
-        });
-      }
-    },
-    { dependencies: [currentIndex, hasClicked], revertOnUpdate: true }
-  );
-
-  useGSAP(() => {
-    gsap.set('#video-frame', {
-      clipPath: 'polygon(14% 0, 72% 0, 88% 90%, 0 95%)',
-      borderRadius: '0% 0% 40% 10%',
-    });
-    gsap.from('#video-frame', {
-      clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)',
-      borderRadius: '0% 0% 0% 0%',
-      ease: 'power1.inOut',
-      scrollTrigger: {
-        trigger: '#video-frame',
-        start: 'center center',
-        end: 'bottom center',
-        scrub: true,
+  // Transform postsData.documents (of type Document[]) to Post[]
+  const recentPosts: Post[] = useMemo(() => {
+    return postsData?.documents.map((doc: any) => ({
+      ...doc,
+      // These properties are expected by PostCard. Adjust defaults as needed.
+      mediaType: doc.mediaType || "image",
+      imageUrl: doc.imageUrl || "",
+      creator: doc.creator || {
+        $id: "",
+        name: "",
+        imageUrl: "/assets/icons/profile-placeholder.svg",
       },
-    });
-  });
+      caption: doc.caption || "",
+      tags: doc.tags || [],
+      location: doc.location || "",
+    })) || [];
+  }, [postsData?.documents]);
 
-  const getVideoSrc = (index: number) => `videos/hero-${index}.mp4`;
+  // Mobile creators panel component
+  const MobileCreatorsPanel = () => {
+    if (!showMobileCreators) return null;
 
-  return (
-    <div className="min-h-screen w-full">
-      <div className="relative h-dvh w-screen overflow-x-hidden">
-        {loading && (
-          <div className="flex-center absolute z-[100] h-dvh w-screen overflow-hidden bg-violet-50">
-            <div className="three-body">
-              <div className="three-body__dot" />
-              <div className="three-body__dot" />
-              <div className="three-body__dot" />
-            </div>
-          </div>
-        )}
-
+    return (
+      <div className="fixed inset-0 z-50 lg:hidden">
         <div
-          id="video-frame"
-          className="relative z-10 h-dvh w-screen overflow-hidden rounded-lg bg-blue-75"
-        >
-          <div>
-            {/* Mini Video Preview */}
-            <div className="mask-clip-path absolute-center absolute z-50 size-64 cursor-pointer overflow-hidden rounded-lg">
-              <VideoPreview>
-                <div
-                  onClick={handleMiniVdClick}
-                  className="origin-center scale-50 opacity-0 transition-all duration-500 ease-in hover:scale-100 hover:opacity-100"
-                >
-                  <video
-                    ref={nextVdRef}
-                    src={getVideoSrc((currentIndex % totalVideos) + 1)}
-                    loop
-                    muted
-                    id="current-video"
-                    className="size-64 origin-center scale-150 object-cover object-center"
-                    onLoadedData={handleVideoLoad}
-                  />
-                </div>
-              </VideoPreview>
-            </div>
-
-            {/* Next Video */}
-            <video
-              ref={nextVdRef}
-              src={getVideoSrc(currentIndex)}
-              loop
-              muted
-              id="next-video"
-              className="absolute-center invisible absolute z-20 size-64 object-cover object-center"
-              onLoadedData={handleVideoLoad}
-            />
-
-            {/* Main Video */}
-            <video
-              src={getVideoSrc(
-                currentIndex === totalVideos ? 1 : currentIndex
-              )}
-              autoPlay
-              loop
-              muted
-              className="absolute left-0 top-0 size-full object-cover object-center"
-              onLoadedData={handleVideoLoad}
-            />
+          className="absolute inset-0 bg-black bg-opacity-50"
+          onClick={() => setShowMobileCreators(false)}
+        />
+        <div className="absolute right-0 top-0 bottom-0 w-[280px] bg-dark-2 p-4 overflow-y-auto custom-scrollbar">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="h3-bold text-light-1">Popular Creators</h3>
+            <button 
+              onClick={() => setShowMobileCreators(false)}
+              aria-label="Close creators panel"
+            >
+              <img src="/assets/icons/back.svg" alt="Close" className="w-6 h-6" />
+            </button>
           </div>
-
-          {/* Transparent Glass Button */}
-          <div className="absolute left-0 top-0 z-40 size-full">
-            <div className="mt-24 px-5 sm:px-10">
-              <Button
-                id="watch-trailer"
-                title=""
-                leftIcon={
-                  <TiLocationArrow className="text-white text-2xl transition-all hover:scale-125" />
-                }
-                containerClass="bg-transparent backdrop-blur-sm border-2 border-white/30 hover:border-white/80 rounded-full p-3 shadow-glass-lg hover:shadow-glass-xl transition-all duration-300"
-              />
-            </div>
-          </div>
+          {isUserLoading && !creatorsData ? (
+            <Loader />
+          ) : (
+            <ul className="flex flex-col gap-4">
+              {creatorsData?.documents.map((creator: any) => (
+                <li key={creator.$id}>
+                  <UserCard user={creator} />
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </div>
+    );
+  };
 
-      {/* Custom Glass Shadows */}
-      <style>{`
-        .shadow-glass-lg {
-          box-shadow: 0 4px 30px rgba(255, 255, 255, 0.1);
-        }
-        .shadow-glass-xl {
-          box-shadow: 0 8px 40px rgba(255, 255, 255, 0.2);
-        }
-      `}</style>
+  if (isErrorPosts || isErrorCreators) {
+    return (
+      <div className="flex flex-1">
+        <div className="home-container">
+          <p className="body-medium text-light-1">Error loading content</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-1 h-screen">
+      {/* Background Video */}
+      <div className="fixed inset-0 -z-10">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="w-full h-full object-cover opacity-20"
+        >
+          <source src="/assets/images/pop.mp4" type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+      </div>
+
+      {/* Main Content Container */}
+      <div className="flex w-full h-full">
+        {/* Posts Section */}
+        <div className="flex-1 h-full overflow-y-auto custom-scrollbar">
+          <div className="w-full max-w-[280px] xs:max-w-[380px] sm:max-w-[480px] md:max-w-[580px] lg:max-w-[680px] mx-auto px-2 xs:px-3 sm:px-4 py-4 sm:py-6 md:py-10">
+            {/* Posts Header */}
+            <h2 className="text-[16px] xs:text-[18px] sm:h3-bold md:h2-bold text-left w-full mt-4 sm:mt-6">
+              For you
+            </h2>
+
+            {isPostLoading && !postsData ? (
+              <Loader />
+            ) : (
+              <ul className="flex flex-col gap-4 sm:gap-6 md:gap-8 w-full mt-4 sm:mt-6">
+                {recentPosts.map((post: Post) => (
+                  <li key={post.$id} className="w-full">
+                    <PostCard post={post} />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+
+        {/* Popular Creators Section - Desktop */}
+        <div className="hidden lg:block w-[340px] xl:w-[400px] h-full overflow-y-auto custom-scrollbar bg-dark-2 border-l border-dark-4">
+          <div className="px-4 py-10">
+            <h3 className="h3-bold text-light-1">Popular Creators</h3>
+            {isUserLoading && !creatorsData ? (
+              <Loader />
+            ) : (
+              <ul className="flex flex-col gap-6 mt-6">
+                {creatorsData?.documents.map((creator: any) => (
+                  <li key={creator.$id}>
+                    <UserCard user={creator} />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+
+        {/* Mobile Creators Toggle */}
+        <button
+          className="fixed bottom-4 right-4 lg:hidden bg-dark-2 p-3 rounded-full shadow-lg hover:bg-dark-3 transition-colors"
+          onClick={() => setShowMobileCreators(true)}
+          aria-label="Show creators"
+        >
+          <img
+            src="/assets/icons/people.svg"
+            alt="View Creators"
+            className="w-5 h-5"
+          />
+        </button>
+
+        <MobileCreatorsPanel />
+      </div>
     </div>
   );
 };
 
-export default About;
+export default Home;
