@@ -1,10 +1,36 @@
+// src/context/AuthContext.tsx
+
 import { useNavigate } from "react-router-dom";
 import { createContext, useContext, useEffect, useState } from "react";
-
-import { IUser } from "@/types";
 import { getCurrentUser } from "@/lib/appwrite/api";
 
-export const INITIAL_USER = {
+// Define and export the IUser type so it can be imported from this module.
+export interface IUser {
+  // Appwrite document properties
+  $id: string;
+  $collectionId: string;
+  $databaseId: string;
+  $createdAt: string;
+  $updatedAt: string;
+  $permissions: any[];
+
+  // Custom user properties
+  id: string;
+  name: string;
+  username: string;
+  email: string;
+  imageUrl: string;
+  bio: string;
+}
+
+// Update INITIAL_USER to include all required fields from IUser.
+export const INITIAL_USER: IUser = {
+  $id: "",
+  $collectionId: "",
+  $databaseId: "",
+  $createdAt: "",
+  $updatedAt: "",
+  $permissions: [],
   id: "",
   name: "",
   username: "",
@@ -45,6 +71,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const currentAccount = await getCurrentUser();
       if (currentAccount) {
         setUser({
+          $id: currentAccount.$id,
+          $collectionId: currentAccount.$collectionId,
+          $databaseId: currentAccount.$databaseId,
+          $createdAt: currentAccount.$createdAt,
+          $updatedAt: currentAccount.$updatedAt,
+          $permissions: currentAccount.$permissions,
+          // For convenience, you can set id to be the same as $id.
           id: currentAccount.$id,
           name: currentAccount.name,
           username: currentAccount.username,
@@ -53,10 +86,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           bio: currentAccount.bio,
         });
         setIsAuthenticated(true);
-
         return true;
       }
-
       return false;
     } catch (error) {
       console.error(error);
@@ -75,9 +106,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     ) {
       navigate("/sign-in");
     }
-
     checkAuthUser();
-  }, []);
+  }, [navigate]);
 
   const value = {
     user,
