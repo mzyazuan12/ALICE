@@ -2,16 +2,47 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui";
 import { Loader } from "@/components/shared";
 import { GridPostList, PostStats } from "@/components/shared";
-import { 
-  useGetPostById, 
-  useGetUserPosts, 
-  useDeletePost, 
-  useIncrementViewCount 
+import {
+  useGetPostById,
+  useGetUserPosts,
+  useDeletePost,
+  useIncrementViewCount,
 } from "@/lib/react-query/queries";
 import { multiFormatDateString } from "@/lib/utils";
 import { useUserContext } from "@/context/AuthContext";
 import { useEffect, useState, useMemo } from "react";
 
+// -------------------------------------------------------------------
+// 1. Define a local Document interface with extra properties
+//    (Adjust these definitions or import from your backend types if available)
+interface Document {
+  $id: string;
+  $collectionId: string;
+  $databaseId: string;
+  $createdAt: string;
+  $updatedAt: string;
+  $permissions: any[];
+}
+
+// 2. Define the Creator interface
+interface Creator {
+  $id: string;
+  name: string;
+  imageUrl: string;
+}
+
+// 3. Define the Post interface extending Document. This is the type that GridPostList expects.
+interface Post extends Document {
+  imageUrl: string;
+  creator: Creator;
+  caption: string;
+  tags: string[];
+  location: string;
+  imageId?: string;
+}
+
+// -------------------------------------------------------------------
+// Main Component
 const PostDetails = () => {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -21,10 +52,39 @@ const PostDetails = () => {
   const { data: post, isLoading } = useGetPostById(id);
   const { mutate: incrementViewCount } = useIncrementViewCount();
   const { mutate: deletePost } = useDeletePost();
-  const { data: userPosts, isLoading: isUserPostLoading } = useGetUserPosts(post?.creator.$id);
+  const { data: userPosts, isLoading: isUserPostLoading } = useGetUserPosts(
+    post?.creator.$id
+  );
 
-  const relatedPosts = useMemo(() => {
-    return userPosts?.documents.filter((userPost) => userPost.$id !== id);
+  // 4. Transform the fetched documents into our Post type.
+  //    Here we include both our custom properties and the Document fields.
+  const relatedPosts = useMemo((): Post[] => {
+    return (
+      userPosts?.documents
+        .filter((userPost: any) => userPost.$id !== id)
+        .map((userPost: any) => ({
+          // Document properties (assumed to be provided by the backend)
+          $id: userPost.$id,
+          $collectionId: userPost.$collectionId,
+          $databaseId: userPost.$databaseId,
+          $createdAt: userPost.$createdAt,
+          $updatedAt: userPost.$updatedAt,
+          $permissions: userPost.$permissions,
+          // Custom Post properties with defaults if missing
+          imageUrl: userPost.imageUrl || "",
+          creator:
+            userPost.creator ||
+            {
+              $id: "",
+              name: "",
+              imageUrl: "/assets/icons/profile-placeholder.svg",
+            },
+          caption: userPost.caption || "",
+          tags: userPost.tags || [],
+          location: userPost.location || "",
+          imageId: userPost.imageId || "",
+        })) || []
+    );
   }, [userPosts?.documents, id]);
 
   useEffect(() => {
@@ -36,18 +96,18 @@ const PostDetails = () => {
   useEffect(() => {
     const checkIfVideo = async () => {
       if (!post?.imageUrl) return;
-      
+
       try {
         const videoElement = document.createElement("video");
         videoElement.src = post.imageUrl;
         videoElement.preload = "metadata";
-        
+
         await new Promise((resolve) => {
           videoElement.onloadedmetadata = () => {
             setIsVideo(videoElement.duration > 1);
             resolve(null);
           };
-          
+
           videoElement.onerror = () => {
             setIsVideo(false);
             resolve(null);
@@ -90,37 +150,36 @@ const PostDetails = () => {
     }
 
     return (
-      <img
-        src={post.imageUrl}
-        alt="post media"
-        className="post_details-img"
-      />
+      <img src={post.imageUrl} alt="post media" className="post_details-img" />
     );
   }, [post?.imageUrl, isVideo]);
 
-  const CreatorProfile = useMemo(() => (
-    <Link to={`/profile/${post?.creator.$id}`} className="flex items-center gap-3">
-      <img
-        src={post?.creator.imageUrl || "/assets/icons/profile-placeholder.svg"}
-        alt={`${post?.creator.name}'s profile`}
-        className="w-8 h-8 lg:w-12 lg:h-12 rounded-full"
-      />
-      <div className="flex gap-1 flex-col">
-        <p className="base-medium lg:body-bold text-light-1">
-          {post?.creator.name}
-        </p>
-        <div className="flex-center gap-2 text-light-3">
-          <p className="subtle-semibold lg:small-regular">
-            {multiFormatDateString(post?.$createdAt)}
+  const CreatorProfile = useMemo(
+    () => (
+      <Link to={`/profile/${post?.creator.$id}`} className="flex items-center gap-3">
+        <img
+          src={post?.creator.imageUrl || "/assets/icons/profile-placeholder.svg"}
+          alt={`${post?.creator.name}'s profile`}
+          className="w-8 h-8 lg:w-12 lg:h-12 rounded-full"
+        />
+        <div className="flex gap-1 flex-col">
+          <p className="base-medium lg:body-bold text-light-1">
+            {post?.creator.name}
           </p>
-          •
-          <p className="subtle-semibold lg:small-regular">
-            {post?.location}
-          </p>
+          <div className="flex-center gap-2 text-light-3">
+            <p className="subtle-semibold lg:small-regular">
+              {multiFormatDateString(post?.$createdAt)}
+            </p>
+            •
+            <p className="subtle-semibold lg:small-regular">
+              {post?.location}
+            </p>
+          </div>
         </div>
-      </div>
-    </Link>
-  ), [post?.creator]);
+      </Link>
+    ),
+    [post?.creator, post?.$createdAt, post?.location]
+  );
 
   return (
     <div className="post_details-container">
@@ -130,12 +189,7 @@ const PostDetails = () => {
           variant="ghost"
           className="shad-button_ghost"
         >
-          <img
-            src="/assets/icons/back.svg"
-            alt="back"
-            width={24}
-            height={24}
-          />
+          <img src="/assets/icons/back.svg" alt="back" width={24} height={24} />
           <p className="small-medium lg:base-medium">Back</p>
         </Button>
       </div>
