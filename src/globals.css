@@ -299,3 +299,16 @@
   }
 }
 }
+@layer components {
+  .shadow-glass-lg {
+    box-shadow: 0 4px 30px rgba(255, 255, 255, 0.1);
+  }
+  .shadow-glass-xl {
+    box-shadow: 0 8px 40px rgba(255, 255, 255, 0.2);
+  }
+  .transition-all {
+    transition-property: all;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 200ms;
+  }
+}
