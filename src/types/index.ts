@@ -1,32 +1,22 @@
+import { Models } from "appwrite";
 
-
+// Navigation link type
 export type INavLink = {
   imgURL: string;
   route: string;
   label: string;
-  mediaType?: 'image'|'video'
+  mediaType?: 'image' | 'video';
 };
 
-export type IUpdateUser = {
-  userId: string;
-  name: string;
-  bio: string;
-  file: File[]; // New file(s) attached for update (could be image or video)
-  imageUrl: string; // URL of current user image or video
-  imageId: string; // ID of the current user media file
-  mediaType?: 'image' | 'video'; 
-}
-
-
-
-export type IUser = {
-  id: string;
+// User types
+export interface IUser extends Models.Document {
   name: string;
   username: string;
   email: string;
-  imageUrl: string;
+  imageUrl: string; // Must be a string
   bio: string;
-};
+  mediaType?: 'image' | 'video';
+}
 
 export type INewUser = {
   name: string;
@@ -35,7 +25,17 @@ export type INewUser = {
   password: string;
 };
 
+export type IUpdateUser = {
+  userId: string;
+  name: string;
+  bio: string;
+  file: File[];
+  imageUrl: string;
+  imageId: string;
+  mediaType?: 'image' | 'video';
+};
 
+// Post types
 export interface INewPost {
   caption: string;
   file: File[];
@@ -50,20 +50,22 @@ export interface IUpdatePost {
   caption: string;
   location: string;
   tags?: string;
-  file: File[]; // Array of file(s) attached for update (could be image or video)
-  imageUrl: string; // URL of current post media (could be image or video)
-  imageId: string; // ID of the current media file
-  mediaType: "video" | "image" | "other" | "none";// Type of the media (optional)
+  file: File[];
+  imageUrl: string;
+  imageId: string;
+  mediaType: "video" | "image" | "other" | "none";
 }
-import { Models } from "appwrite";
- interface Creator {
-   $id: string;
+
+// Appwrite-related interfaces
+interface Creator extends Models.Document {
   name: string;
   imageUrl?: string;
+  mediaType?: 'image' | 'video';
 }
- export interface Post extends Models.Document {
-  mediaType?: "image" | "video" | "other" | "none";
-   imageUrl?: string;
+
+export interface Post extends Models.Document {
+  mediaType: "image" | "video" | "other" | "none";
+  imageUrl: string;
   creator: Creator;
   caption: string;
   tags: string[];
